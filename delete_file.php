@@ -1,23 +1,22 @@
 <?php
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!empty($_POST['filename'])) {
-        $filename = basename($_POST['filename']); // amankan nama file
+// Batasi folder target
+$target_dir = "uploads/";
 
-        $filepath = "uploads/" . $filename;
+// Validasi parameter file
+if (isset($_GET['file'])) {
+    $filename = basename($_GET['file']); // Hindari path traversal
+    $filepath = $target_dir . $filename;
 
-        if (file_exists($filepath)) {
-            if (unlink($filepath)) {
-                echo "File '$filename' berhasil dihapus.";
-            } else {
-                echo "Gagal menghapus file '$filename'.";
-            }
+    if (file_exists($filepath)) {
+        if (unlink($filepath)) {
+            echo "Berkas berhasil dihapus.";
         } else {
-            echo "File '$filename' tidak ditemukan.";
+            echo "Gagal menghapus berkas.";
         }
     } else {
-        echo "Nama file tidak diberikan.";
+        echo "Berkas tidak ditemukan.";
     }
 } else {
-    echo "Metode request tidak didukung.";
+    echo "Parameter tidak lengkap.";
 }
 ?>
