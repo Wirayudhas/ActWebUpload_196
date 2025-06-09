@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Unggah dan Pratinjau File</title>
+  <style>
+    :root {
+      --primary: #4e54c8;
+      --secondary: #8f94fb;
+      --light: #ffffff;
+      --bg: #f0f4f8;
+      --text-dark: #333;
+      --text-light: #fff;
+      --shadow: 0 6px 20px rgba(0,0,0,0.1);
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      background: var(--light);
+      padding: 30px 40px;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      width: 90%;
+      max-width: 700px;
+      animation: fadeIn 1s ease;
+    }
+
+    h2, h3 {
+      text-align: center;
+      color: var(--primary);
+      margin-bottom: 1em;
+    }
+
+    input[type="file"] {
+      display: block;
+      margin: 10px auto 20px;
+      padding: 10px;
+      border: 2px dashed var(--primary);
+      border-radius: 8px;
+      width: 100%;
+      background: #fafafa;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    input[type="file"]:hover {
+      background: #f0f0f0;
+    }
+
+    button {
+      display: block;
+      margin: 0 auto 20px;
+      padding: 10px 20px;
+      background: var(--primary);
+      color: var(--text-light);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #3c41a2;
+    }
+
+    #preview {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    canvas, img {
+      max-width: 100%;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      background: #f8f9ff;
+      margin: 10px 0;
+      padding: 12px 16px;
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow);
+      transition: 0.3s;
+    }
+
+    li:hover {
+      background: #eef1ff;
+    }
+
+    li a {
+      color: var(--primary);
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    li button {
+      background: crimson;
+      font-size: 14px;
+      padding: 6px 12px;
+    }
+
+    li button:hover {
+      background: darkred;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media screen and (max-width: 600px) {
+      .container {
+        padding: 20px;
+      }
+      li {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      li button {
+        margin-top: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Unggah File & Pratinjau</h2>
+  <form id="uploadForm" enctype="multipart/form-data">
+    <input type="file" name="fileToUpload" id="fileToUpload" required>
+    <button type="submit">Unggah Sekarang</button>
+  </form>
+
+  <div id="preview"></div>
+
+  <h3>Daftar File:</h3>
+  <ul id="fileList"></ul>
+</div>
+
+<!-- PDF.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.10.111/pdf.min.js"></script>
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.10.111/pdf.worker.min.js';
+
+  const fileInput = document.getElementById('fileToUpload');
+  const preview = document.getElementById('preview');
+  const fileList = document.getElementById('fileList');
+  const form = document.getElementById('uploadForm');
+
+  fileInput.addEventListener('change', function () {
+    preview.innerHTML = '';
+    const file = this.files[0];
+    if (!file) return;
+
+    const fileType = file.type;
+    if (fileType.startsWith('image/')) {
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(file);
+      preview.appendChild(img);
+    } else if (fileType === 'application/pdf') {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const typedarray = new Uint8Array(e.target.result);
+        pdfjsLib.getDocument(typedarray).promise.then(pdf => {
+          pdf.getPage(1).then(page => {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            const viewport = page.getViewport({ scale: 1.5 });
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            page.render({ canvasContext: context, viewport: viewport }).promise.then(() => {
+              preview.appendChild(canvas);
+            });
+          });
+        });
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      preview.textContent = 'Tidak bisa mempratinjau jenis file ini.';
+    }
+  });
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const data = new FormData(form);
+
+    fetch('upload.php', {
+      method: 'POST',
+      body: data
+    }).then(res => res.text()).then(text => {
+      alert(text);
+      preview.innerHTML = '';
+      form.reset();
+      loadFiles();
+    });
+  });
+
+  function loadFiles() {
+    fetch('list_files.php')
+      .then(res => res.json())
+      .then(files => {
+        fileList.innerHTML = '';
+        files.forEach(file => {
+          const li = document.createElement('li');
+          li.innerHTML = `
+            <span><a href="uploads/${file}" target="_blank">${file}</a></span>
+            <button onclick="deleteFile('${file}')">Hapus</button>
+          `;
+          fileList.appendChild(li);
+        });
+      });
+  }
+
+  function deleteFile(file) {
+    fetch(`delete_file.php?file=${encodeURIComponent(file)}`)
+      .then(res => res.text())
+      .then(msg => {
+        alert(msg);
+        loadFiles();
+      });
+  }
+
+  loadFiles();
+</script>
+</body>
+</html>
