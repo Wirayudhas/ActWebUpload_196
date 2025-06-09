@@ -1,16 +1,17 @@
-## 📸 Tampilan Antarmuka
+📸 Tampilan Antarmuka
 
-### Preview PDF
-Menampilkan area unggah file.
-![Tampilan 1](Preview PDF.png)
+Preview PDF
+![Tampilan 1]
+(https://github.com/Wirayudhas/ActWebUpload_196/blob/main/Preview%20PDF.png)
 
-### Preview Gambar
-Menampilkan daftar file yang berhasil diunggah.
-![Tampilan 2](Preview Gambar.png)
+Preview Gambar
+[Tampilan 2]
+(https://github.com/Wirayudhas/ActWebUpload_196/blob/main/Preview%20Gambar.png)
 
-### Before Delete
-Menampilkan pratinjau halaman pertama dari PDF.
-![Tampilan 3](Before delete.png)
+Before Delete
+![Tampilan 3]
+https://github.com/Wirayudhas/ActWebUpload_196/blob/main/Before%20delete.png
 
-### After Delete
-![Tampilan 4](After Delete.png)
+After Delete
+![Tampilan 4]
+https://github.com/Wirayudhas/ActWebUpload_196/blob/main/After%20Delete.png
